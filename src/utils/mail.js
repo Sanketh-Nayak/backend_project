@@ -1,5 +1,45 @@
 import Mailgen from "mailgen";
+import nodemailer from "nodemailer";
 
+// this is used to send the mail
+const sendEmail = async (options) => {
+  const mailGenerator = new Mailgen({
+    theme: "default",
+    product: {
+      name: "Task Manager",
+      link: "https://taskmanagerlink.com",
+    },
+  });
+  const emailTexual = mailGenerator.generatePlaintext(options.mailgenContent);
+  const emailHtml = mailGenerator.generatePlaintext(options.mailgenContent);
+
+  const transpoter = nodemailer.createTransport({
+    host: process.env.MAILTRAP_SMTP_HOST,
+    port: process.env.MAILTRAP_SMTP_PORT,
+    auth: {
+      user: process.env.MAILTRAP_SMTP_USER,
+      pass: process.env.MAILTRAP_SMTP_PASS,
+    },
+  });
+
+  const mail = {
+    from: "mail.taskmanager@example.com",
+    to: options.email,
+    subject: options.subject,
+    text: emailTexual,
+    html: emailHtml,
+  };
+  try {
+    await transpoter.sendMail(mail);
+  } catch (error) {
+    console.error(
+      "Email service failed siliently. Make sure that you provide your MAILTRAP credentials in the .env file",
+      console.error("Error: ", error),
+    );
+  }
+};
+
+// it is used to verfify the email
 const emailVerficationMailgenContent = (username, verficationUrl) => {
   return {
     body: {
@@ -40,4 +80,4 @@ const forgetPasswordgenContent = (username, passwordrRestUrl) => {
   };
 };
 
-export { emailVerficationMailgenContent, forgetPasswordgenContent };
+export { emailVerficationMailgenContent, forgetPasswordgenContent, sendEmail };
