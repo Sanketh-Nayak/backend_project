@@ -44,7 +44,7 @@ const emailVerficationMailgenContent = (username, verficationUrl) => {
   return {
     body: {
       name: username,
-      inrto: "Welcome to our App! we are exited to have you on board.",
+      intro: "Welcome to our App! we are exited to have you on board.",
       action: {
         instructions:
           "To verify your email please click on the following button",
