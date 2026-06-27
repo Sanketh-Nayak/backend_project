@@ -11,7 +11,7 @@ const sendEmail = async (options) => {
     },
   });
   const emailTexual = mailGenerator.generatePlaintext(options.mailgenContent);
-  const emailHtml = mailGenerator.generatePlaintext(options.mailgenContent);
+  const emailHtml = mailGenerator.generate(options.mailgenContent);
 
   const transpoter = nodemailer.createTransport({
     host: process.env.MAILTRAP_SMTP_HOST,
@@ -34,7 +34,7 @@ const sendEmail = async (options) => {
   } catch (error) {
     console.error(
       "Email service failed siliently. Make sure that you provide your MAILTRAP credentials in the .env file",
-      console.error("Error: ", error),
+      console.error(error),
     );
   }
 };
