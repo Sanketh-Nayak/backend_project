@@ -11,7 +11,7 @@ const generateAccessAndRefreshToken = async (userID) => {
     const refreshToken = user.generateRefreshToken();
 
     user.refreshToken = refreshToken;
-    await user.save({ validateBeforeSave: fasle });
+    await user.save({ validateBeforeSave: false });
     return { accessToken, refreshToken };
   } catch (error) {
     throw new ApiError(500, "Something went wrong while generating token");
@@ -68,4 +68,46 @@ const registerUser = asyncHandler(async (req, res) => {
     );
 });
 
-export { registerUser };
+const login = asyncHandler(async (req, res) => {
+  const { email, password, username } = req.body;
+  if (!email) {
+    throw new ApiError(400, "Username or email is required");
+  }
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(400, "User does not exist");
+  }
+  const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiError(400, "Invalid credintial");
+  }
+
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    user._id,
+  );
+
+  const loggedUser = await User.findById(user._id).select(
+    "-password -refreshToken -emailVerficationToken -emailVerficationExpiry",
+  );
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: loggedUser,
+          accessToken,
+          refreshToken,
+        },
+        "User is logged in Successfully",
+      ),
+    );
+});
+export { registerUser, login };
